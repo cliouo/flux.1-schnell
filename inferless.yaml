@@ -1,6 +1,6 @@
 version: 1.0.0
 
-name: flux1-schnell
+name: flux-1-schnell
 import_source: GIT
 
 # you can choose the options between ONNX, TENSORFLOW, PYTORCH
