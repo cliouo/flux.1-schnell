@@ -1,3 +1,6 @@
+import os
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"]='1'
+from huggingface_hub import snapshot_download
 from diffusers import FluxPipeline
 import torch
 from io import BytesIO
@@ -5,7 +8,9 @@ import base64
 
 class InferlessPythonModel:
     def initialize(self):
-        self.pipe = FluxPipeline.from_pretrained("black-forest-labs/FLUX.1-schnell", torch_dtype=torch.bfloat16).to("cuda")
+        model_id = "black-forest-labs/FLUX.1-schnell"
+        snapshot_download(repo_id=model_id,allow_patterns=["*.safetensors"])
+        self.pipe = FluxPipeline.from_pretrained(model_id, torch_dtype=torch.bfloat16).to("cuda")
 
     def infer(self, inputs):
         prompt = inputs["prompt"]
