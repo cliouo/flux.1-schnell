@@ -8,17 +8,22 @@ import base64
 
 class InferlessPythonModel:
     def initialize(self):
-        model_id = "black-forest-labs/FLUX.1-schnell"
+        model_id = "black-forest-labs/FLUX.1-dev"
         snapshot_download(repo_id=model_id,allow_patterns=["*.safetensors"])
         self.pipe = FluxPipeline.from_pretrained(model_id, torch_dtype=torch.bfloat16).to("cuda")
+        self.pipe.enable_model_cpu_offload()
 
-    def infer(self, inputs):
+    def infer(self, inputs, seed = None):
         prompt = inputs["prompt"]
-        height = inputs.get("height", 512)
-        width = inputs.get("width", 512)
-        guidance_scale = inputs.get("guidance_scale", 7.5)
-        num_inference_steps = inputs.get("num_inference_steps", 4)
-        max_sequence_length = inputs.get("max_sequence_length", 256)
+        height = inputs.get("height", 1024)
+        width = inputs.get("width", 1024)
+        guidance_scale = inputs.get("guidance_scale", 3.5)
+        num_inference_steps = inputs.get("num_inference_steps", 50)
+        max_sequence_length = inputs.get("max_sequence_length", 512)
+
+        generator = None
+        if seed is not None:
+            generator = torch.Generator("cuda").manual_seed(seed)
 
         image = self.pipe(
             prompt,
@@ -27,6 +32,7 @@ class InferlessPythonModel:
             guidance_scale=guidance_scale,
             num_inference_steps=num_inference_steps,
             max_sequence_length=max_sequence_length,
+            generator=generator,
         ).images[0]
 
         buff = BytesIO()
